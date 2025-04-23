@@ -25,8 +25,13 @@ pub fn bench_init_context(c: &mut Criterion) {
                 serde_json::from_reader(get_trusted_setup().as_slice())
                     .map_err(|e| format!("Unable to read trusted setup file: {}", e))
                     .expect("should have trusted setup");
-            KzgSettings::load_trusted_setup(&trusted_setup.g1_points(), &trusted_setup.g2_points())
-                .unwrap()
+            KzgSettings::load_trusted_setup(
+                &trusted_setup.g1_points(),
+                &trusted_setup.g1_monomial_points(),
+                &trusted_setup.g2_points(),
+                0,
+            )
+            .unwrap()
         })
     });
 }

@@ -1,5 +1,4 @@
 use crate::PeerDASTrustedSetup;
-use c_kzg::{BYTES_PER_G1_POINT, BYTES_PER_G2_POINT};
 use serde::{
     de::{self, Deserializer, Visitor},
     Deserialize, Serialize,
@@ -10,6 +9,9 @@ pub const TRUSTED_SETUP_BYTES: &[u8] = include_bytes!("../trusted_setup.json");
 pub fn get_trusted_setup() -> Vec<u8> {
     TRUSTED_SETUP_BYTES.into()
 }
+
+pub const BYTES_PER_G1_POINT: usize = 48;
+pub const BYTES_PER_G2_POINT: usize = 96;
 
 /// Wrapper over a BLS G1 point's byte representation.
 #[derive(Debug, Clone, PartialEq)]
@@ -37,12 +39,28 @@ pub struct TrustedSetup {
 }
 
 impl TrustedSetup {
-    pub fn g1_points(&self) -> Vec<[u8; BYTES_PER_G1_POINT]> {
-        self.g1_points.iter().map(|p| p.0).collect()
+    pub fn g1_points(&self) -> Vec<u8> {
+        self.g1_points
+            .iter()
+            .map(|p| p.0.as_slice())
+            .collect::<Vec<_>>()
+            .concat()
     }
 
-    pub fn g2_points(&self) -> Vec<[u8; BYTES_PER_G2_POINT]> {
-        self.g2_points.iter().map(|p| p.0).collect()
+    pub fn g1_monomial_points(&self) -> Vec<u8> {
+        self.g1_monomial_points
+            .iter()
+            .map(|p| p.0.as_slice())
+            .collect::<Vec<_>>()
+            .concat()
+    }
+
+    pub fn g2_points(&self) -> Vec<u8> {
+        self.g2_points
+            .iter()
+            .map(|p| p.0.as_slice())
+            .collect::<Vec<_>>()
+            .concat()
     }
 
     pub fn g1_len(&self) -> usize {
