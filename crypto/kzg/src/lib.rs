@@ -66,7 +66,9 @@ impl Kzg {
         Ok(Self {
             trusted_setup: KzgSettings::load_trusted_setup(
                 &trusted_setup.g1_points(),
+                &trusted_setup.g1_monomial_points(),
                 &trusted_setup.g2_points(),
+                0,
             )?,
             context,
         })
@@ -86,7 +88,9 @@ impl Kzg {
         Ok(Self {
             trusted_setup: KzgSettings::load_trusted_setup(
                 &trusted_setup.g1_points(),
+                &trusted_setup.g1_monomial_points(),
                 &trusted_setup.g2_points(),
+                0,
             )?,
             context,
         })
@@ -112,7 +116,9 @@ impl Kzg {
         Ok(Self {
             trusted_setup: KzgSettings::load_trusted_setup(
                 &trusted_setup.g1_points(),
+                &trusted_setup.g1_monomial_points(),
                 &trusted_setup.g2_points(),
+                0,
             )?,
             context,
         })
@@ -128,7 +134,8 @@ impl Kzg {
         blob: &Blob,
         kzg_commitment: KzgCommitment,
     ) -> Result<KzgProof, Error> {
-        c_kzg::KzgProof::compute_blob_kzg_proof(blob, &kzg_commitment.into(), &self.trusted_setup)
+        self.trusted_setup
+            .compute_blob_kzg_proof(blob, &kzg_commitment.into())
             .map(|proof| KzgProof(proof.to_bytes().into_inner()))
             .map_err(Into::into)
     }
@@ -140,11 +147,10 @@ impl Kzg {
         kzg_commitment: KzgCommitment,
         kzg_proof: KzgProof,
     ) -> Result<(), Error> {
-        if !c_kzg::KzgProof::verify_blob_kzg_proof(
+        if self.trusted_setup.verify_blob_kzg_proof(
             blob,
             &kzg_commitment.into(),
             &kzg_proof.into(),
-            &self.trusted_setup,
         )? {
             Err(Error::KzgVerificationFailed)
         } else {
@@ -172,11 +178,10 @@ impl Kzg {
             .map(|proof| Bytes48::from(*proof))
             .collect::<Vec<_>>();
 
-        if !c_kzg::KzgProof::verify_blob_kzg_proof_batch(
+        if !self.trusted_setup.verify_blob_kzg_proof_batch(
             blobs,
             &commitments_bytes,
             &proofs_bytes,
-            &self.trusted_setup,
         )? {
             Err(Error::KzgVerificationFailed)
         } else {
@@ -186,7 +191,8 @@ impl Kzg {
 
     /// Converts a blob to a kzg commitment.
     pub fn blob_to_kzg_commitment(&self, blob: &Blob) -> Result<KzgCommitment, Error> {
-        c_kzg::KzgCommitment::blob_to_kzg_commitment(blob, &self.trusted_setup)
+        self.trusted_setup
+            .blob_to_kzg_commitment(blob)
             .map(|commitment| KzgCommitment(commitment.to_bytes().into_inner()))
             .map_err(Into::into)
     }
@@ -197,7 +203,8 @@ impl Kzg {
         blob: &Blob,
         z: &Bytes32,
     ) -> Result<(KzgProof, Bytes32), Error> {
-        c_kzg::KzgProof::compute_kzg_proof(blob, z, &self.trusted_setup)
+        self.trusted_setup
+            .compute_kzg_proof(blob, z)
             .map(|(proof, y)| (KzgProof(proof.to_bytes().into_inner()), y))
             .map_err(Into::into)
     }
@@ -210,14 +217,9 @@ impl Kzg {
         y: &Bytes32,
         kzg_proof: KzgProof,
     ) -> Result<bool, Error> {
-        c_kzg::KzgProof::verify_kzg_proof(
-            &kzg_commitment.into(),
-            z,
-            y,
-            &kzg_proof.into(),
-            &self.trusted_setup,
-        )
-        .map_err(Into::into)
+        self.trusted_setup
+            .verify_kzg_proof(&kzg_commitment.into(), z, y, &kzg_proof.into())
+            .map_err(Into::into)
     }
 
     /// Computes the cells and associated proofs for a given `blob` at index `index`.

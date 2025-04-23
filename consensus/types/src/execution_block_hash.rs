@@ -21,7 +21,7 @@ use std::fmt;
 )]
 #[derivative(Debug = "transparent")]
 #[serde(transparent)]
-pub struct ExecutionBlockHash(#[serde(with = "serde_utils::b256_hex")] pub Hash256);
+pub struct ExecutionBlockHash(pub Hash256);
 
 impl ExecutionBlockHash {
     pub fn zero() -> Self {
