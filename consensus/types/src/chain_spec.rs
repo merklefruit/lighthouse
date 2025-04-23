@@ -1449,7 +1449,6 @@ pub struct Config {
     deposit_chain_id: u64,
     #[serde(with = "serde_utils::quoted_u64")]
     deposit_network_id: u64,
-    #[serde(with = "serde_utils::address_hex")]
     deposit_contract_address: Address,
 
     #[serde(default = "default_gas_limit_adjustment_factor")]
